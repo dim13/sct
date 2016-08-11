@@ -9,8 +9,14 @@ import (
 	"github.com/BurntSushi/xgb/xproto"
 )
 
+const (
+	minTemp = 1000
+	maxTemp = 10000
+	defTemp = 6500
+)
+
 var (
-	temp = flag.Int("temp", 6500, "color temperature")
+	temp = flag.Int("temp", defTemp, "color temperature")
 	pre  = flag.String("preset", "", "candle, tungsten, halogen, fluorescent, daylight")
 )
 
@@ -104,8 +110,8 @@ func SetTemp(temp int) error {
 
 func main() {
 	flag.Parse()
-	if *temp < 1000 || *temp > 10000 {
-		*temp = 6500
+	if *temp < minTemp || *temp > maxTemp {
+		*temp = defTemp
 	}
 	if p, ok := preset[*pre]; ok {
 		*temp = p
