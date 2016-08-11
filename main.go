@@ -63,7 +63,7 @@ func (wp Whitepoints) Gamma(temp int) (r, g, b float64) {
 	return
 }
 
-func getGamma(size int, temp int) (r, g, b []uint16) {
+func Gamma(size int, temp int) (r, g, b []uint16) {
 	gammar, gammag, gammab := wp.Gamma(temp)
 	r = make([]uint16, size)
 	g = make([]uint16, size)
@@ -99,7 +99,7 @@ func SetTemp(temp int) error {
 		if err != nil {
 			return err
 		}
-		r, g, b := getGamma(int(size.Size), temp)
+		r, g, b := Gamma(int(size.Size), temp)
 		err = randr.SetCrtcGammaChecked(conn, crtc, size.Size, r, g, b).Check()
 		if err != nil {
 			return err
