@@ -9,6 +9,19 @@ import (
 	"github.com/BurntSushi/xgb/xproto"
 )
 
+var (
+	temp = flag.Int("temp", 6500, "color temperature")
+	pre  = flag.String("preset", "", "candle, tungsten, halogen, fluorescent, daylight")
+)
+
+var preset = map[string]int{
+	"candle":      2300,
+	"tungsten":    2700,
+	"halogen":     3400,
+	"fluorescent": 4200,
+	"daylight":    5000,
+}
+
 type Whitepoints []struct{ R, G, B float64 }
 
 var wp = Whitepoints{
@@ -44,16 +57,7 @@ func (wp Whitepoints) Gamma(temp int) (r, g, b float64) {
 	return
 }
 
-func Crtcs(conn *xgb.Conn) []randr.Crtc {
-	root := xproto.Setup(conn).DefaultScreen(conn).Root
-	res, err := randr.GetScreenResourcesCurrent(conn, root).Reply()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return res.Crtcs
-}
-
-func Gamma(size int, temp int) (r, g, b []uint16) {
+func getGamma(size int, temp int) (r, g, b []uint16) {
 	gammar, gammag, gammab := wp.Gamma(temp)
 	r = make([]uint16, size)
 	g = make([]uint16, size)
@@ -67,26 +71,36 @@ func Gamma(size int, temp int) (r, g, b []uint16) {
 	return
 }
 
-func CrtcSize(conn *xgb.Conn, crtc randr.Crtc) uint16 {
-	size, err := randr.GetCrtcGammaSize(conn, crtc).Reply()
+func SetTemp(temp int) error {
+	conn, err := xgb.NewConn()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	return size.Size
-}
+	defer conn.Close()
 
-var preset = map[string]int{
-	"candle":      2300,
-	"tungsten":    2700,
-	"halogen":     3400,
-	"fluorescent": 4200,
-	"daylight":    5000,
-}
+	if err := randr.Init(conn); err != nil {
+		return err
+	}
 
-var (
-	temp = flag.Int("temp", 6500, "color temperature")
-	pre  = flag.String("preset", "", "candle, tungsten, halogen, fluorescent, daylight")
-)
+	root := xproto.Setup(conn).DefaultScreen(conn).Root
+	res, err := randr.GetScreenResourcesCurrent(conn, root).Reply()
+	if err != nil {
+		return err
+	}
+
+	for _, crtc := range res.Crtcs {
+		size, err := randr.GetCrtcGammaSize(conn, crtc).Reply()
+		if err != nil {
+			return err
+		}
+		r, g, b := getGamma(int(size.Size), temp)
+		err = randr.SetCrtcGammaChecked(conn, crtc, size.Size, r, g, b).Check()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func main() {
 	flag.Parse()
@@ -96,23 +110,7 @@ func main() {
 	if p, ok := preset[*pre]; ok {
 		*temp = p
 	}
-
-	conn, err := xgb.NewConn()
-	if err != nil {
+	if err := SetTemp(*temp); err != nil {
 		log.Fatal(err)
-	}
-	defer conn.Close()
-
-	if err := randr.Init(conn); err != nil {
-		log.Fatal(err)
-	}
-
-	for _, crtc := range Crtcs(conn) {
-		size := CrtcSize(conn, crtc)
-		r, g, b := Gamma(int(size), *temp)
-		err = randr.SetCrtcGammaChecked(conn, crtc, size, r, g, b).Check()
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 }
