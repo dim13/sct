@@ -75,11 +75,26 @@ func CrtcSize(conn *xgb.Conn, crtc randr.Crtc) uint16 {
 	return size.Size
 }
 
+var preset = map[string]int{
+	"candle":      2300,
+	"tungsten":    2700,
+	"halogen":     3400,
+	"fluorescent": 4200,
+	"daylight":    5000,
+}
+
+var (
+	temp = flag.Int("temp", 6500, "color temperature")
+	pre  = flag.String("preset", "", "candle, tungsten, halogen, fluorescent, daylight")
+)
+
 func main() {
-	temp := flag.Int("temp", 6500, "Screen temperature")
 	flag.Parse()
 	if *temp < 1000 || *temp > 10000 {
 		*temp = 6500
+	}
+	if p, ok := preset[*pre]; ok {
+		*temp = p
 	}
 
 	conn, err := xgb.NewConn()
