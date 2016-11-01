@@ -17,10 +17,13 @@ const (
 	defTemp = 6500
 )
 
-var (
-	temp = flag.Int("temp", defTemp, "color temperature")
-	pre  = flag.String("preset", "", usage(preset))
-)
+var preset = map[string]int{
+	"candle":      2300,
+	"tungsten":    2700,
+	"halogen":     3400,
+	"fluorescent": 4200,
+	"daylight":    5000,
+}
 
 func usage(m map[string]int) string {
 	var s []string
@@ -29,14 +32,6 @@ func usage(m map[string]int) string {
 	}
 	sort.Strings(s)
 	return strings.Join(s, ", ")
-}
-
-var preset = map[string]int{
-	"candle":      2300,
-	"tungsten":    2700,
-	"halogen":     3400,
-	"fluorescent": 4200,
-	"daylight":    5000,
 }
 
 type Whitepoints []struct{ R, G, B float64 }
@@ -120,15 +115,19 @@ func SetTemp(temp int) error {
 }
 
 func main() {
+	t := flag.Int("temp", defTemp, "color temperature")
+	p := flag.String("preset", "", usage(preset))
 	flag.Parse()
-	if *temp < minTemp || *temp > maxTemp {
-		*temp = defTemp
+
+	if *t < minTemp || *t > maxTemp {
+		*t = defTemp
 	}
-	if p, ok := preset[*pre]; ok {
-		*temp = p
+	if pr, ok := preset[*p]; ok {
+		*t = pr
 	}
-	log.Printf("Set %vK", *temp)
-	if err := SetTemp(*temp); err != nil {
+
+	log.Printf("Set %vK", *t)
+	if err := SetTemp(*t); err != nil {
 		log.Fatal(err)
 	}
 }
