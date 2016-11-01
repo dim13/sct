@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"sort"
+	"strings"
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/randr"
@@ -17,8 +19,17 @@ const (
 
 var (
 	temp = flag.Int("temp", defTemp, "color temperature")
-	pre  = flag.String("preset", "", "candle, tungsten, halogen, fluorescent, daylight")
+	pre  = flag.String("preset", "", usage(preset))
 )
+
+func usage(m map[string]int) string {
+	var s []string
+	for k := range m {
+		s = append(s, k)
+	}
+	sort.Strings(s)
+	return strings.Join(s, ", ")
+}
 
 var preset = map[string]int{
 	"candle":      2300,
@@ -116,6 +127,7 @@ func main() {
 	if p, ok := preset[*pre]; ok {
 		*temp = p
 	}
+	log.Printf("Set %vK", *temp)
 	if err := SetTemp(*temp); err != nil {
 		log.Fatal(err)
 	}
