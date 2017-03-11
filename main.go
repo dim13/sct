@@ -3,36 +3,11 @@ package main
 import (
 	"flag"
 	"log"
-	"sort"
-	"strings"
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/randr"
 	"github.com/BurntSushi/xgb/xproto"
 )
-
-const (
-	minTemp = 1000
-	maxTemp = 10000
-	defTemp = 6500
-)
-
-var preset = map[string]int{
-	"candle":      2300,
-	"tungsten":    2700,
-	"halogen":     3400,
-	"fluorescent": 4200,
-	"daylight":    5000,
-}
-
-func usage(m map[string]int) string {
-	var s []string
-	for k := range m {
-		s = append(s, k)
-	}
-	sort.Strings(s)
-	return strings.Join(s, ", ")
-}
 
 type Whitepoints []struct{ R, G, B float64 }
 
@@ -83,7 +58,7 @@ func Gamma(size int, temp int) (r, g, b []uint16) {
 	return
 }
 
-func SetTemp(temp int) error {
+func Set(temp int) error {
 	conn, err := xgb.NewConn()
 	if err != nil {
 		return err
@@ -115,19 +90,12 @@ func SetTemp(temp int) error {
 }
 
 func main() {
-	t := flag.Int("temp", defTemp, "color temperature")
-	p := flag.String("preset", "", usage(preset))
+	temp := DefTemp
+	flag.Var(&temp, "temp", temp.Usage())
 	flag.Parse()
 
-	if *t < minTemp || *t > maxTemp {
-		*t = defTemp
-	}
-	if pr, ok := preset[*p]; ok {
-		*t = pr
-	}
-
-	log.Printf("Set %vK", *t)
-	if err := SetTemp(*t); err != nil {
+	log.Printf("Set %vK", temp.Value)
+	if err := Set(temp.Value); err != nil {
 		log.Fatal(err)
 	}
 }
