@@ -16,3 +16,8 @@ Usage
 * Campfire style: `sct -temp 4500`
 * Dust storm on Mars style: `sct -temp 2000`
 * Coffee free all nighter style: `sct -temp 8000`
+
+White points
+============
+
+![white points](whitepoint.png)
