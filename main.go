@@ -90,7 +90,7 @@ func Set(temp int) error {
 }
 
 func main() {
-	temp := DefTemp
+	temp := defTemp
 	flag.Var(&temp, "temp", temp.Usage())
 	flag.Parse()
 

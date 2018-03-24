@@ -11,7 +11,7 @@ type Temp struct {
 }
 
 var (
-	DefTemp = Temp{6500, "default"}
+	defTemp = Temp{6500, "default"}
 	minTemp = Temp{1000, "minimal"}
 	maxTemp = Temp{10000, "maximal"}
 	presets = []Temp{
