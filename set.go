@@ -8,14 +8,19 @@ import (
 	"github.com/BurntSushi/xgb/xproto"
 )
 
+type Gammer interface {
+	Gamma(size, temp int) (r, g, b []uint16)
+}
+
 type X struct {
 	conn  *xgb.Conn
 	root  xproto.Window
 	crtcs []randr.Crtc
 	sizes []uint16
+	g     Gammer
 }
 
-func NewX() (*X, error) {
+func NewX(g Gammer) (*X, error) {
 	conn, err := xgb.NewConn()
 	if err != nil {
 		return nil, err
@@ -45,6 +50,7 @@ func NewX() (*X, error) {
 		root:  root,
 		crtcs: res.Crtcs,
 		sizes: sizes,
+		g:     g,
 	}, nil
 }
 
@@ -56,7 +62,7 @@ func (x *X) Set(temp int) error {
 	log.Println("set", temp)
 	for i, crtc := range x.crtcs {
 		size := x.sizes[i]
-		r, g, b := Gamma(int(size), temp)
+		r, g, b := x.g.Gamma(int(size), temp)
 		if err := randr.SetCrtcGammaChecked(x.conn, crtc, size, r, g, b).Check(); err != nil {
 			return err
 		}

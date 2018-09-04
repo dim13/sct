@@ -2,7 +2,11 @@ package main
 
 import "time"
 
-const inc = 2
+const (
+	inc     = 2
+	midTerm = 4500
+	maxMin  = 24 * 60 // minutes in a day
+)
 
 type Setter interface {
 	Set(temp int) error
@@ -13,11 +17,10 @@ func minutes(t time.Time) int {
 }
 
 func Run(s Setter) error {
-	temp := 4500
-	now := minutes(time.Now())
+	temp, now := midTerm, minutes(time.Now())
 
-	if now > 720 {
-		temp += inc * (1440 - now)
+	if now > maxMin/2 {
+		temp += inc * (maxMin - now)
 	} else {
 		temp += inc * now
 	}
@@ -32,7 +35,7 @@ func Run(s Setter) error {
 	for t := range tick.C {
 		now := minutes(t)
 
-		if now > 720 {
+		if now > maxMin/2 {
 			temp -= inc
 		} else {
 			temp += inc
