@@ -3,10 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-
-	"github.com/BurntSushi/xgb"
-	"github.com/BurntSushi/xgb/randr"
-	"github.com/BurntSushi/xgb/xproto"
 )
 
 type Whitepoints []struct{ R, G, B float64 }
@@ -34,7 +30,7 @@ var wp = Whitepoints{
 	{0.77442176, 0.85453121, 1.00000000},
 }
 
-func (wp Whitepoints) Gamma(temp int) (r, g, b float64) {
+func (wp Whitepoints) avg(temp int) (r, g, b float64) {
 	temp -= 1000
 	ratio := float64(temp%500) / 500.0
 	i, j := temp/500, temp/500+1
@@ -45,7 +41,7 @@ func (wp Whitepoints) Gamma(temp int) (r, g, b float64) {
 }
 
 func Gamma(size int, temp int) (r, g, b []uint16) {
-	gammar, gammag, gammab := wp.Gamma(temp)
+	gammar, gammag, gammab := wp.avg(temp)
 	r = make([]uint16, size)
 	g = make([]uint16, size)
 	b = make([]uint16, size)
@@ -58,44 +54,24 @@ func Gamma(size int, temp int) (r, g, b []uint16) {
 	return
 }
 
-func Set(temp int) error {
-	conn, err := xgb.NewConn()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	if err := randr.Init(conn); err != nil {
-		return err
-	}
-
-	root := xproto.Setup(conn).DefaultScreen(conn).Root
-	res, err := randr.GetScreenResourcesCurrent(conn, root).Reply()
-	if err != nil {
-		return err
-	}
-
-	for _, crtc := range res.Crtcs {
-		size, err := randr.GetCrtcGammaSize(conn, crtc).Reply()
-		if err != nil {
-			return err
-		}
-		r, g, b := Gamma(int(size.Size), temp)
-		err = randr.SetCrtcGammaChecked(conn, crtc, size.Size, r, g, b).Check()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func main() {
 	temp := defTemp
+	var run bool
 	flag.Var(&temp, "temp", temp.Usage())
+	flag.BoolVar(&run, "run", false, "run in background")
 	flag.Parse()
 
-	log.Printf("Set %vK", temp.Value)
-	if err := Set(temp.Value); err != nil {
+	x, err := NewX()
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer x.Close()
+
+	if run {
+		Run(x)
+	} else {
+		if err := x.Set(temp.Value); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
