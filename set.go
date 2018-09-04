@@ -16,7 +16,6 @@ type X struct {
 	conn  *xgb.Conn
 	root  xproto.Window
 	crtcs []randr.Crtc
-	sizes []uint16
 	g     Gammer
 }
 
@@ -36,20 +35,10 @@ func NewX(g Gammer) (*X, error) {
 		return nil, err
 	}
 
-	sizes := make([]uint16, len(res.Crtcs))
-	for i, crtc := range res.Crtcs {
-		size, err := randr.GetCrtcGammaSize(conn, crtc).Reply()
-		if err != nil {
-			return nil, err
-		}
-		sizes[i] = size.Size
-	}
-
 	return &X{
 		conn:  conn,
 		root:  root,
 		crtcs: res.Crtcs,
-		sizes: sizes,
 		g:     g,
 	}, nil
 }
@@ -60,10 +49,13 @@ func (x *X) Close() {
 
 func (x *X) Set(temp int) error {
 	log.Println("set", temp)
-	for i, crtc := range x.crtcs {
-		size := x.sizes[i]
-		r, g, b := x.g.Gamma(int(size), temp)
-		if err := randr.SetCrtcGammaChecked(x.conn, crtc, size, r, g, b).Check(); err != nil {
+	for _, crtc := range x.crtcs {
+		size, err := randr.GetCrtcGammaSize(x.conn, crtc).Reply()
+		if err != nil {
+			return err
+		}
+		r, g, b := x.g.Gamma(int(size.Size), temp)
+		if err := randr.SetCrtcGammaChecked(x.conn, crtc, size.Size, r, g, b).Check(); err != nil {
 			return err
 		}
 	}
