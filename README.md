@@ -1,3 +1,6 @@
+[![GoDoc](https://godoc.org/github.com/dim13/sct?status.svg)](https://godoc.org/github.com/dim13/sct)
+[![Build Status](https://travis-ci.org/dim13/sct.svg?branch=master)](https://travis-ci.org/dim13/sct)
+
 Set Color Temperature
 ---------------------
 
