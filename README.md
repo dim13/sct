@@ -20,4 +20,4 @@ Usage
 White points
 ============
 
-![white points](whitepoint.png)
+![white points](doc/wp.png)
