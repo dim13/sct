@@ -40,15 +40,15 @@ func (p Whitepoints) avg(temp int) (r, g, b float64) {
 }
 
 func (p Whitepoints) Gamma(size, temp int) (r, g, b []uint16) {
-	gammar, gammag, gammab := p.avg(temp)
+	avgr, avgg, avgb := p.avg(temp)
 	r = make([]uint16, size)
 	g = make([]uint16, size)
 	b = make([]uint16, size)
 	for i := 0; i < size; i++ {
 		gamma := 65535.0 * float64(i) / float64(size)
-		r[i] = uint16(gamma * gammar)
-		g[i] = uint16(gamma * gammag)
-		b[i] = uint16(gamma * gammab)
+		r[i] = uint16(gamma * avgr)
+		g[i] = uint16(gamma * avgg)
+		b[i] = uint16(gamma * avgb)
 	}
 	return r, g, b
 }

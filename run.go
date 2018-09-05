@@ -3,9 +3,9 @@ package main
 import "time"
 
 const (
-	inc     = 2
-	midTerm = 4500
-	maxMin  = 24 * 60 // minutes in a day
+	inc      = 2
+	initTemp = 4500
+	dayMins  = 24 * 60 // minutes in a day
 )
 
 type Setter interface {
@@ -17,12 +17,12 @@ func minutes(t time.Time) int {
 }
 
 func Run(s Setter) error {
-	temp, now := midTerm, minutes(time.Now())
+	temp, nowMin := initTemp, minutes(time.Now())
 
-	if now > maxMin/2 {
-		temp += inc * (maxMin - now)
+	if nowMin > dayMins/2 {
+		temp += inc * (dayMins - nowMin)
 	} else {
-		temp += inc * now
+		temp += inc * nowMin
 	}
 
 	if err := s.Set(temp); err != nil {
@@ -33,9 +33,9 @@ func Run(s Setter) error {
 	defer tick.Stop()
 
 	for t := range tick.C {
-		now := minutes(t)
+		nowMin := minutes(t)
 
-		if now > maxMin/2 {
+		if nowMin > dayMins/2 {
 			temp -= inc
 		} else {
 			temp += inc

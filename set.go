@@ -35,12 +35,7 @@ func NewX(g Gammer) (*X, error) {
 		return nil, err
 	}
 
-	return &X{
-		conn:  conn,
-		root:  root,
-		crtcs: res.Crtcs,
-		g:     g,
-	}, nil
+	return &X{conn: conn, root: root, crtcs: res.Crtcs, g: g}, nil
 }
 
 func (x *X) Close() {

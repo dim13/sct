@@ -19,7 +19,9 @@ func main() {
 	defer x.Close()
 
 	if run {
-		Run(x)
+		if err := Run(x); err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		if err := x.Set(temp.Value); err != nil {
 			log.Fatal(err)
