@@ -1,14 +1,14 @@
 Set Color Temperature
 ---------------------
 
-sct is a transliteration of Ted Unangst
+`sct` is a transliteration of Ted Unangst
 [sct](http://www.tedunangst.com/flak/post/sct-set-color-temperature)
 application in Go
 
 Install
 =======
 
-    go get github.com/dim13/sct
+    go install github.com/dim13/sct@latest
 
 Usage
 =====
